@@ -1,0 +1,108 @@
+import { useState } from 'react';
+
+export type AppMode = 'chat' | 'quick' | 'sync';
+
+interface ModeSelectorProps {
+  activeMode: AppMode;
+  onModeChange: (mode: AppMode) => void;
+}
+
+interface ModeButton {
+  id: AppMode;
+  label: string;
+  icon: string;
+  description: string;
+}
+
+const modes: ModeButton[] = [
+  {
+    id: 'chat',
+    label: 'Chat',
+    icon: '💬',
+    description: 'Conversational AI assistant',
+  },
+  {
+    id: 'quick',
+    label: 'Quick Generate',
+    icon: '⚡',
+    description: 'Fast script-to-bid conversion',
+  },
+  {
+    id: 'sync',
+    label: 'Live Sync',
+    icon: '🔁',
+    description: 'Real-time Excel synchronization',
+  },
+];
+
+/**
+ * Mode selector component with tab-based navigation
+ * Provides smooth transitions and active state highlighting
+ */
+export default function ModeSelector({ activeMode, onModeChange }: ModeSelectorProps) {
+  const [hoveredMode, setHoveredMode] = useState<AppMode | null>(null);
+
+  return (
+    <nav className="h-20 bg-gray-800 border-b border-gray-700 flex items-center px-6 gap-2">
+      {modes.map((mode) => {
+        const isActive = activeMode === mode.id;
+        const isHovered = hoveredMode === mode.id;
+
+        return (
+          <button
+            key={mode.id}
+            onClick={() => onModeChange(mode.id)}
+            onMouseEnter={() => setHoveredMode(mode.id)}
+            onMouseLeave={() => setHoveredMode(null)}
+            className={`
+              relative flex flex-col items-center justify-center
+              px-6 py-3 rounded-xl transition-all duration-200
+              min-w-[120px] group
+              ${isActive
+                ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/30'
+                : 'text-gray-400 hover:bg-gray-700 hover:text-gray-200'
+              }
+            `}
+            aria-label={`Switch to ${mode.label} mode`}
+            aria-current={isActive ? 'page' : undefined}
+          >
+            {/* Icon */}
+            <span className="text-2xl mb-1 transform transition-transform duration-200 group-hover:scale-110">
+              {mode.icon}
+            </span>
+
+            {/* Label */}
+            <span className="text-sm font-medium whitespace-nowrap">
+              {mode.label}
+            </span>
+
+            {/* Active indicator bar */}
+            {isActive && (
+              <span className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-12 h-1 bg-blue-400 rounded-full" />
+            )}
+
+            {/* Tooltip on hover */}
+            {isHovered && !isActive && (
+              <div className="absolute bottom-full mb-2 px-3 py-1.5 bg-gray-900 text-gray-200 text-xs rounded-lg whitespace-nowrap shadow-xl border border-gray-700 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                {mode.description}
+                <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900" />
+              </div>
+            )}
+          </button>
+        );
+      })}
+
+      {/* Divider */}
+      <div className="flex-1" />
+
+      {/* Mode info display */}
+      <div className="text-sm text-gray-500">
+        {modes.find(m => m.id === activeMode)?.description}
+      </div>
+    </nav>
+  );
+}
+
+/**
+ * Export mode type for use in other components
+ */
