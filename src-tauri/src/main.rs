@@ -56,11 +56,12 @@ async fn main() {
         ])
         // Setup application
         .setup(|app| {
-            #[cfg(debug_assertions)]
-            {
-                let window = app.get_webview_window("main").unwrap();
-                window.open_devtools();
-            }
+            // NOTE: Temporarily disabled devtools due to crash
+            // #[cfg(debug_assertions)]
+            // {
+            //     let window = app.get_webview_window("main").unwrap();
+            //     window.open_devtools();
+            // }
 
             // Start Python sidecar on application startup
             let sidecar_state: State<SidecarState> = app.state();
@@ -68,12 +69,12 @@ async fn main() {
             // Find the Python RPC server script
             // Try multiple possible locations
             let possible_paths = vec![
+                // Absolute path to parent directory (works in dev)
+                PathBuf::from("/Volumes/MacWork/VFX-BIDDING/python_sidecar/rpc_server.py"),
                 // App bundle resources (production)
                 app.path().resource_dir()
                     .unwrap_or_else(|_| PathBuf::from("."))
                     .join("python_sidecar/rpc_server.py"),
-                // Absolute path to parent directory
-                PathBuf::from("/Volumes/MacWork/VFX-BIDDING/python_sidecar/rpc_server.py"),
                 // Relative to project root (development)
                 PathBuf::from("../../python_sidecar/rpc_server.py"),
                 // Relative to project root (alternative)
@@ -84,14 +85,14 @@ async fn main() {
                 .find(|p| p.exists())
                 .unwrap_or_else(|| PathBuf::from("python_sidecar/rpc_server.py"));
 
-            log::info!("Starting Python sidecar from: {:?}", resource_path);
+            println!("Starting Python sidecar from: {:?}", resource_path);
 
             // Start the sidecar - this will spawn the Python process
             match sidecar_state.start(resource_path) {
-                Ok(_) => log::info!("Python sidecar started successfully"),
+                Ok(_) => println!("Python sidecar started successfully"),
                 Err(e) => {
-                    log::error!("Failed to start Python sidecar: {}", e);
-                    log::warn!("Application will continue but RPC calls will fail");
+                    eprintln!("Failed to start Python sidecar: {}", e);
+                    eprintln!("Application will continue but RPC calls will fail");
                 }
             }
 
